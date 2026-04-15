@@ -1,0 +1,189 @@
+@model MyWebProject.Controllers.CreateUserViewModel
+@{
+    ViewData["Title"] = "إضافة مستخدم جديد";
+}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card-soft p-4">
+            <h3 class="h5 mb-3">
+                <i class="bi bi-person-plus"></i>
+                <span data-ar="مستخدم جديد" data-en="New User">مستخدم جديد</span>
+            </h3>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> <span class="temp-message">@TempData["Success"]</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <span class="temp-message">@TempData["Error"]</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="CreateUser" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label small fw-semibold">
+                        <span data-ar="اسم المستخدم" data-en="Username">اسم المستخدم</span>
+                    </label>
+                    <input asp-for="Username" class="form-control" 
+                           data-ar-placeholder="أدخل اسم المستخدم" 
+                           data-en-placeholder="Enter username" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label small fw-semibold">
+                        <span data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</span>
+                    </label>
+                    <input asp-for="Email" class="form-control" 
+                           data-ar-placeholder="example@domain.com" 
+                           data-en-placeholder="example@domain.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label small fw-semibold">
+                        <span data-ar="الاسم الكامل" data-en="Full Name">الاسم الكامل</span>
+                    </label>
+                    <input asp-for="FullName" class="form-control" 
+                           data-ar-placeholder="الاسم الكامل (اختياري)" 
+                           data-en-placeholder="Full name (optional)" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label small fw-semibold">
+                        <span data-ar="رقم الهاتف" data-en="Phone Number">رقم الهاتف</span>
+                    </label>
+                    <input asp-for="PhoneNumber" class="form-control" 
+                           data-ar-placeholder="05xxxxxxxx" 
+                           data-en-placeholder="Phone number" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <!-- حقول الشركة -->
+                <div class="mb-3">
+                    <label asp-for="CompanyName" class="form-label small fw-semibold">
+                        <span data-ar="اسم الشركة" data-en="Company Name">اسم الشركة</span>
+                    </label>
+                    <input asp-for="CompanyName" class="form-control" 
+                           data-ar-placeholder="أدخل اسم الشركة" 
+                           data-en-placeholder="Enter company name" />
+                    <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">
+                        <span data-ar="شعار الشركة" data-en="Company Logo">شعار الشركة</span>
+                    </label>
+                    <input type="file" id="logoFile" class="form-control" accept="image/*" />
+                    <input type="hidden" asp-for="CompanyLogoUrl" id="CompanyLogoUrl" />
+                    <div id="logoPreview" class="mt-2" style="display:none;">
+                        <img id="previewImg" src="" alt="Logo Preview" style="max-width: 100px; max-height: 100px;" />
+                    </div>
+                    <span id="uploadStatus" class="text-muted small"></span>
+                    <span asp-validation-for="CompanyLogoUrl" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label small fw-semibold">
+                        <span data-ar="كلمة المرور" data-en="Password">كلمة المرور</span>
+                    </label>
+                    <input asp-for="Password" type="password" class="form-control" 
+                           data-ar-placeholder="كلمة المرور" 
+                           data-en-placeholder="Password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Users" class="btn btn-secondary rounded-pill px-4">
+                        <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                    </a>
+                    <button type="submit" class="btn btn-soft-primary rounded-pill px-4">
+                        <span data-ar="إنشاء" data-en="Create">إنشاء</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        const IMGBB_API_KEY = "cddaac16d521cccb99a5941d8155c706";
+
+        document.getElementById('logoFile').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const statusSpan = document.getElementById('uploadStatus');
+            statusSpan.textContent = 'جاري رفع الشعار...';
+            statusSpan.style.color = 'blue';
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const imageUrl = data.data.url;
+                    document.getElementById('CompanyLogoUrl').value = imageUrl;
+                    const previewDiv = document.getElementById('logoPreview');
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = imageUrl;
+                    previewDiv.style.display = 'block';
+                    statusSpan.textContent = 'تم رفع الشعار بنجاح!';
+                    statusSpan.style.color = 'green';
+                } else {
+                    throw new Error(data.error.message);
+                }
+            } catch (error) {
+                statusSpan.textContent = 'فشل رفع الشعار: ' + error.message;
+                statusSpan.style.color = 'red';
+            }
+        });
+
+        function translateCreateUserPage() {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+            document.querySelectorAll('[data-ar-placeholder][data-en-placeholder]').forEach(input => {
+                if (currentLang === 'ar') {
+                    input.placeholder = input.getAttribute('data-ar-placeholder');
+                } else {
+                    input.placeholder = input.getAttribute('data-en-placeholder');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            translateCreateUserPage();
+        });
+
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateCreateUserPage();
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+    </script>
+}

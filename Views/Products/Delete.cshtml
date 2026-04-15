@@ -1,0 +1,80 @@
+@model MyWebProject.Models.Product
+@{
+    ViewData["Title"] = "حذف منتج";
+}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card-soft p-4 text-center">
+            <i class="bi bi-trash3 fs-1 text-danger-soft"></i>
+            <h4 class="h5 mt-2">
+                <span data-ar="تأكيد الحذف" data-en="Confirm Deletion">تأكيد الحذف</span>
+            </h4>
+            <p>
+                <span data-ar="هل أنت متأكد من حذف المنتج" data-en="Are you sure you want to delete the product"></span>
+                <strong>@Model.Name</strong>؟
+            </p>
+            <dl class="row justify-content-center text-start small">
+                <dt class="col-sm-4">
+                    <span data-ar="السعر" data-en="Price">السعر</span>
+                </dt>
+                <dd class="col-sm-8">@Model.Price.ToString("C")</dd>
+                
+                <dt class="col-sm-4">
+                    <span data-ar="الوصف" data-en="Description">الوصف</span>
+                </dt>
+                <dd class="col-sm-8">@(Model.Description ?? "—")</dd>
+            </dl>
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="Id" />
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <a asp-action="Index" class="btn btn-secondary rounded-pill px-4">
+                        <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                    </a>
+                    <button type="submit" class="btn btn-soft-danger rounded-pill px-4">
+                        <span data-ar="حذف" data-en="Delete">حذف</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ============= دعم الترجمة في صفحة الحذف =============
+        
+        // دالة لترجمة العناصر داخل الحاوية
+        function translateDeletePage(container) {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+        }
+        
+        // ترجمة الصفحة عند التحميل
+        document.addEventListener('DOMContentLoaded', function() {
+            translateDeletePage(document.body);
+        });
+        
+        // الاستماع لتغيير اللغة من الـ Layout (عند تغيير سمة dir على html)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateDeletePage(document.body);
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // بديل: الاستماع لتخزين اللغة في localStorage من نافذة أخرى
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateDeletePage(document.body);
+            }
+        });
+    </script>
+}

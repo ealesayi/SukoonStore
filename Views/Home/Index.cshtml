@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "مرحباً بك";
+}
+<style>
+    .welcome-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .welcome-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 40px;
+        padding: 3rem 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        animation: fadeInUp 1s ease-out;
+        max-width: 600px;
+        width: 100%;
+    }
+
+    body.dark-mode .welcome-card {
+        background: rgba(37, 43, 61, 0.9);
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .welcome-icon {
+        font-size: 5rem;
+        color: var(--primary-soft);
+        animation: bounce 2s infinite;
+    }
+
+    @@keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    .btn-glow {
+        transition: all 0.3s ease;
+        box-shadow: 0 0 10px rgba(92,158,142,0.3);
+    }
+
+    .btn-glow:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(92,158,142,0.6);
+    }
+</style>
+
+<div class="welcome-container">
+    <div class="welcome-card">
+        <div class="welcome-icon">
+            <i class="bi bi-flower1"></i>
+        </div>
+        <h1 class="display-4 fw-bold mt-3" style="color: var(--text-dark);">
+            <span data-ar="مرحباً بك في" data-en="Welcome to">مرحباً بك في</span>
+            <span style="color: var(--primary-soft);" data-ar="سكون" data-en="Sukoon">سكون</span>
+        </h1>
+        <p class="lead text-muted mt-3">
+            <span data-ar="منصة إدارة المنتجات الحديثة" data-en="Modern product management platform">منصة إدارة المنتجات الحديثة</span>
+        </p>
+        <p class="mt-2">
+            <span data-ar="نتمنى لك تجربة سهلة وممتعة ✨" data-en="We wish you an easy and enjoyable experience ✨">نتمنى لك تجربة سهلة وممتعة ✨</span>
+        </p>
+
+        <div class="mt-5">
+            <a href="/Account/Login" class="btn btn-soft-primary btn-lg rounded-pill px-5 btn-glow">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span data-ar="ابدأ الآن" data-en="Start Now">ابدأ الآن</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ============= دعم الترجمة لصفحة الترحيب =============
+        function translateWelcomePage() {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+        }
+
+        // الترجمة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', translateWelcomePage);
+
+        // مراقبة تغيير اللغة (عند تغيير سمة dir من Layout)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateWelcomePage();
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // الاستماع لتغيير اللغة عبر localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateWelcomePage();
+            }
+        });
+    </script>
+}

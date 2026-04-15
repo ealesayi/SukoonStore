@@ -1,0 +1,117 @@
+@model IEnumerable<MyWebProject.Models.Product>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light text-center border-0 shadow-sm rounded-4">
+        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+        <span data-ar="لا توجد منتجات." data-en="No products found.">لا توجد منتجات.</span>
+    </div>
+}
+else
+{
+    <div class="row g-4" id="productsContainer">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card-soft p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="mb-1 fw-semibold product-name">@item.Name</h5>
+                        <span class="badge-soft">
+                            @item.Price.ToString("N2")
+                            <span data-ar="ريال" data-en="SAR">ريال</span>
+                        </span>
+                    </div>
+                    <p class="text-muted small mt-2 product-description">@(item.Description ?? "وصف بسيط...")</p>
+                    <p class="text-muted mt-1 mb-3 product-date">
+    <i class="bi bi-calendar3"></i> 
+    <span dir="ltr">
+        @item.CreatedAt.ToString("yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture)
+    </span>
+</p>
+                    <div class="d-flex justify-content-end gap-2 mt-auto">
+                        <a asp-action="Edit" asp-route-id="@item.Id" 
+                           class="btn btn-sm btn-soft-warning rounded-pill px-3"
+                           data-ar-title="تعديل" data-en-title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" 
+                           class="btn btn-sm btn-soft-danger rounded-pill px-3"
+                           data-ar-title="حذف" data-en-title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    /* ========== إصلاح ألوان النصوص في الوضع الليلي ========== */
+    /* هذا القسم يضمن أن كل النصوص في البطاقات تتغير حسب الثيم */
+    body.dark-mode .card-soft,
+    body.dark-mode .card-soft .product-name,
+    body.dark-mode .card-soft .product-description,
+    body.dark-mode .card-soft .product-date,
+    body.dark-mode .card-soft .text-muted,
+    body.dark-mode .card-soft small,
+    body.dark-mode .card-soft span:not(.badge-soft) {
+        color: var(--text-dark) !important;
+    }
+    
+    /* لون السعر في البطاقة (مع خلفية soft) */
+    body.dark-mode .card-soft .badge-soft {
+        background-color: var(--primary-soft);
+        color: #ffffff !important;
+    }
+    
+    /* تحسين وضوح التواريخ */
+    body.dark-mode .product-date {
+        color: var(--text-muted) !important;
+    }
+</style>
+
+<script>
+    // ============= دعم الترجمة داخل البطاقات (للمحتوى الذي يتم تحميله ديناميكياً) =============
+    
+    // دالة لترجمة العناصر داخل البطاقات (يتم استدعاؤها بعد تحميل المحتوى عبر البحث)
+    function translateProductCards(container) {
+        const currentLang = localStorage.getItem('language') || 'ar';
+        // ترجمة النصوص الثابتة داخل البطاقات
+        container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+            if (currentLang === 'ar') {
+                el.textContent = el.getAttribute('data-ar');
+            } else {
+                el.textContent = el.getAttribute('data-en');
+            }
+        });
+        // ترجمة خاصية title لأزرار التعديل والحذف (تظهر عند المرور بالماوس)
+        container.querySelectorAll('[data-ar-title][data-en-title]').forEach(el => {
+            if (currentLang === 'ar') {
+                el.setAttribute('title', el.getAttribute('data-ar-title'));
+            } else {
+                el.setAttribute('title', el.getAttribute('data-en-title'));
+            }
+        });
+    }
+    
+    // إذا تم تحميل هذا الـ Partial بشكل منفصل (عبر AJAX)، نقوم بترجمته فوراً
+    if (document.currentScript && document.currentScript.parentElement) {
+        translateProductCards(document.currentScript.parentElement);
+    } else {
+        // عند التحميل العادي (ضمن الصفحة الرئيسية)، نترجم بعد تحميل DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            translateProductCards(document.body);
+        });
+    }
+    
+    // مراقبة تغيير اللغة (من الـ Layout) وإعادة ترجمة البطاقات الحالية
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'dir') {
+                translateProductCards(document.body);
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+</script>

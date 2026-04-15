@@ -1,0 +1,109 @@
+@model MyWebProject.Models.Product
+@{
+    ViewData["Title"] = "إضافة منتج";
+}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card-soft p-4">
+            <h3 class="h5 mb-3">
+                <i class="bi bi-plus-circle"></i>
+                <span data-ar="منتج جديد" data-en="New Product">منتج جديد</span>
+            </h3>
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label small fw-semibold">
+                        <span data-ar="@Html.DisplayNameFor(m => m.Name)" data-en="Name">@Html.DisplayNameFor(m => m.Name)</span>
+                    </label>
+                    <input asp-for="Name" class="form-control" 
+                           data-ar-placeholder="اسم المنتج" 
+                           data-en-placeholder="Product name" 
+                           placeholder="اسم المنتج" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+                
+                <div class="mb-3">
+                    <label asp-for="Price" class="form-label small fw-semibold">
+                        <span data-ar="@Html.DisplayNameFor(m => m.Price)" data-en="Price">@Html.DisplayNameFor(m => m.Price)</span>
+                    </label>
+                    <input asp-for="Price" class="form-control" 
+                           data-ar-placeholder="0.00" 
+                           data-en-placeholder="0.00" 
+                           placeholder="0.00" />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+                
+                <div class="mb-4">
+                    <label asp-for="Description" class="form-label small fw-semibold">
+                        <span data-ar="@Html.DisplayNameFor(m => m.Description)" data-en="Description">@Html.DisplayNameFor(m => m.Description)</span>
+                    </label>
+                    <textarea asp-for="Description" rows="3" class="form-control" 
+                              data-ar-placeholder="وصف قصير..." 
+                              data-en-placeholder="Short description..." 
+                              placeholder="وصف قصير..."></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary rounded-pill px-4">
+                        <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                    </a>
+                    <button type="submit" class="btn btn-soft-primary rounded-pill px-4">
+                        <span data-ar="حفظ" data-en="Save">حفظ</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // ============= دعم الترجمة في صفحة الإضافة =============
+        
+        // دالة لترجمة العناصر الثابتة (النصوص) داخل الصفحة
+        function translateCreatePage(container) {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            // ترجمة العناصر النصية العادية (span, div, h, etc)
+            container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+            // ترجمة خاصية placeholder لعناصر الإدخال
+            container.querySelectorAll('[data-ar-placeholder][data-en-placeholder]').forEach(input => {
+                if (currentLang === 'ar') {
+                    input.placeholder = input.getAttribute('data-ar-placeholder');
+                } else {
+                    input.placeholder = input.getAttribute('data-en-placeholder');
+                }
+            });
+        }
+        
+        // ترجمة الصفحة عند التحميل
+        document.addEventListener('DOMContentLoaded', function() {
+            translateCreatePage(document.body);
+        });
+        
+        // مراقبة تغيير اللغة عبر الـ Layout (عند تغيير سمة dir على html)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateCreatePage(document.body);
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // الاستماع لحدث تغيير اللغة من localStorage (في حالة فتح عدة نوافذ)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateCreatePage(document.body);
+            }
+        });
+    </script>
+}

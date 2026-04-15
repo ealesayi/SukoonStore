@@ -1,0 +1,74 @@
+@model MyWebProject.Models.Cart
+@{
+    var lang = Context.Request.Cookies["UserLanguage"] ?? "ar";
+    ViewData["Title"] = lang == "en" ? "Shopping Cart" : "سلة التسوق";
+}
+<h2 class="h4 mb-4">
+    <i class="bi bi-cart"></i> 
+    <span data-ar="سلة التسوق" data-en="Shopping Cart">سلة التسوق</span>
+</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model.CartItems == null || !Model.CartItems.Any())
+{
+    <div class="alert alert-light text-center">
+        <span data-ar="سلة التسوق فارغة." data-en="Your cart is empty.">سلة التسوق فارغة.</span>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            @foreach (var item in Model.CartItems)
+            {
+                <div class="card-soft p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">@item.Product.Name</h5>
+                            <p class="text-muted small">
+                                <span data-ar="السعر:" data-en="Price:">السعر:</span> 
+                                @item.Product.Price.ToString("N2") <span data-ar="ريال" data-en="SAR">ريال</span>
+                            </p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <form asp-action="UpdateQuantity" method="post" class="d-inline">
+                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                <input type="number" name="quantity" value="@item.Quantity" min="1" max="100" style="width:70px;" class="form-control form-control-sm" />
+                                <button type="submit" class="btn btn-sm btn-secondary mt-1">
+                                    <span data-ar="تحديث" data-en="Update">تحديث</span>
+                                </button>
+                            </form>
+                            <form asp-action="RemoveFromCart" method="post" class="d-inline">
+                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-soft-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-md-4">
+            <div class="card-soft p-3">
+                <h5><span data-ar="الإجمالي" data-en="Total">الإجمالي</span></h5>
+                <h3>@Model.CartItems.Sum(i => i.Product.Price * i.Quantity).ToString("N2") <span data-ar="ريال" data-en="SAR">ريال</span></h3>
+                <button class="btn btn-soft-primary w-100 rounded-pill mt-2" disabled>
+                    <span data-ar="إتمام الشراء (قريباً)" data-en="Checkout (soon)">إتمام الشراء (قريباً)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+<div class="mt-3">
+    <a asp-action="Index" asp-controller="CustomerProducts" class="btn btn-secondary rounded-pill">
+        <i class="bi bi-arrow-right"></i> <span data-ar="مواصلة التسوق" data-en="Continue Shopping">مواصلة التسوق</span>
+    </a>
+</div>

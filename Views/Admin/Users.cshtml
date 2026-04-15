@@ -1,0 +1,368 @@
+@{
+    var lang = Context.Request.Cookies["UserLanguage"] ?? "ar";
+    var culture = new System.Globalization.CultureInfo(lang == "ar" ? "ar-SA" : "en-US");
+}
+@model IEnumerable<MyWebProject.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "إدارة المستخدمين";
+}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="h4">
+        <i class="bi bi-people"></i>
+        <span data-ar="المستخدمون" data-en="Users">المستخدمون</span>
+    </h2>
+    <a asp-action="CreateUser" class="btn btn-soft-primary rounded-pill">
+        <i class="bi bi-person-plus"></i>
+        <span data-ar="مستخدم جديد" data-en="New User">مستخدم جديد</span>
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> <span class="temp-message">@TempData["Success"]</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span class="temp-message">@TempData["Error"]</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- شريط البحث الفوري -->
+<div class="mb-4">
+    <div class="position-relative">
+        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        <input type="text" id="searchInput" class="form-control rounded-pill py-2 ps-5" 
+               data-ar-placeholder="بحث بالاسم أو رقم الهاتف..." 
+               data-en-placeholder="Search by name or phone number..."
+               placeholder="بحث بالاسم أو رقم الهاتف..." autocomplete="off">
+    </div>
+</div>
+
+<div class="card-soft p-0 overflow-hidden">
+    <!-- ========== عرض الجدول (للشاشات المتوسطة والكبيرة) ========== -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0" id="usersTable">
+            <thead class="table-light">
+                <tr>
+                    <th><span data-ar="اسم المستخدم" data-en="Username">اسم المستخدم</span></th>
+                    <th><span data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</span></th>
+                    <th><span data-ar="الاسم الكامل" data-en="Full Name">الاسم الكامل</span></th>
+                    <th><span data-ar="رقم الهاتف" data-en="Phone Number">رقم الهاتف</span></th>
+                    <th><span data-ar="تاريخ التسجيل" data-en="Registered On">تاريخ التسجيل</span></th>
+                    <th><span data-ar="الإجراءات" data-en="Actions">الإجراءات</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr class="user-row" data-username="@user.UserName" data-phone="@user.PhoneNumber" data-fullname="@user.FullName" data-email="@user.Email">
+                        <td>@user.UserName</td>
+                        <td>@user.Email</td>
+                        <td>@user.FullName</td>
+                        <td>@user.PhoneNumber</td>
+                        <td dir="ltr">
+    @user.RegisteredAt.ToString("yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture)
+</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-soft-primary rounded-pill"
+                                   data-ar-title="تعديل" data-en-title="Edit">
+                                    <i class="bi bi-pencil"></i> <span data-ar="تعديل" data-en="Edit">تعديل</span>
+                                </a>
+                                @if (user.UserName == "admin")
+                                {
+                                    <button type="button" class="btn btn-sm btn-secondary rounded-pill" disabled 
+                                            data-ar-title="لا يمكن حذف الحساب الأساسي" data-en-title="Cannot delete primary account">
+                                        <i class="bi bi-trash"></i> <span data-ar="حذف" data-en="Delete">حذف</span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-soft-danger rounded-pill delete-btn" 
+                                            data-id="@user.Id" 
+                                            data-name="@user.UserName"
+                                            data-ar-title="حذف المستخدم" data-en-title="Delete user">
+                                        <i class="bi bi-trash"></i> <span data-ar="حذف" data-en="Delete">حذف</span>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== عرض البطاقات (للشاشات الصغيرة - الجوال) ========== -->
+    <div class="d-block d-md-none" id="cardsContainer">
+        @foreach (var user in Model)
+        {
+            <div class="card mb-3 border-0 shadow-sm rounded-4 user-card" data-username="@user.UserName" data-phone="@user.PhoneNumber" data-fullname="@user.FullName" data-email="@user.Email">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-person-circle"></i> @user.UserName
+                        </h5>
+                        <span class="badge bg-light text-dark rounded-pill" dir="ltr">
+    @user.RegisteredAt.ToString("yyyy/MM/dd")
+</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-envelope text-secondary"></i> @user.Email
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-person-badge"></i> @user.FullName
+                    </div>
+                    @if (!string.IsNullOrEmpty(user.PhoneNumber))
+                    {
+                        <div class="mb-3">
+                            <i class="bi bi-telephone"></i> @user.PhoneNumber
+                        </div>
+                    }
+                    <div class="d-flex gap-2 mt-3">
+                        <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-soft-primary rounded-pill flex-grow-1"
+                           data-ar-title="تعديل" data-en-title="Edit">
+                            <i class="bi bi-pencil"></i> <span data-ar="تعديل" data-en="Edit">تعديل</span>
+                        </a>
+                        @if (user.UserName == "admin")
+                        {
+                            <button type="button" class="btn btn-sm btn-secondary rounded-pill flex-grow-1" disabled>
+                                <i class="bi bi-trash"></i> <span data-ar="حذف" data-en="Delete">حذف</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-sm btn-soft-danger rounded-pill flex-grow-1 delete-btn" 
+                                    data-id="@user.Id" 
+                                    data-name="@user.UserName">
+                                <i class="bi bi-trash"></i> <span data-ar="حذف" data-en="Delete">حذف</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- رسالة في حالة عدم وجود نتائج -->
+    <div id="noResultsMessage" class="text-center py-5 d-none">
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+        <p class="mt-2 text-muted">
+            <span data-ar="لا يوجد مستخدمون مطابقون للبحث" data-en="No users match your search">لا يوجد مستخدمون مطابقون للبحث</span>
+        </p>
+    </div>
+</div>
+
+<!-- مودال تأكيد الحذف -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle text-danger"></i> 
+                    <span data-ar="تأكيد الحذف" data-en="Confirm Deletion">تأكيد الحذف</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <span data-ar="هل أنت متأكد من حذف المستخدم" data-en="Are you sure you want to delete user"></span>
+                <strong id="deleteUserName"></strong>
+                <span data-ar="نهائياً؟" data-en="permanently?">نهائياً؟</span>
+                <p class="text-danger small mt-2">
+                    <span data-ar="لا يمكن التراجع عن هذا الإجراء." data-en="This action cannot be undone.">لا يمكن التراجع عن هذا الإجراء.</span>
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">
+                    <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                </button>
+                <form id="deleteForm" method="post" asp-action="DeleteUser">
+                    <input type="hidden" name="id" id="deleteUserId" />
+                    <button type="submit" class="btn btn-danger rounded-pill">
+                        <span data-ar="حذف نهائي" data-en="Delete Permanently">حذف نهائي</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ---- دعم الترجمة في هذه الصفحة ----
+        function translateAdminPage(container) {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            // ترجمة النصوص الثابتة
+            container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+            // ترجمة خاصية placeholder
+            container.querySelectorAll('[data-ar-placeholder][data-en-placeholder]').forEach(input => {
+                if (currentLang === 'ar') {
+                    input.placeholder = input.getAttribute('data-ar-placeholder');
+                } else {
+                    input.placeholder = input.getAttribute('data-en-placeholder');
+                }
+            });
+            // ترجمة خاصية title (للأزرار والروابط)
+            container.querySelectorAll('[data-ar-title][data-en-title]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.setAttribute('title', el.getAttribute('data-ar-title'));
+                } else {
+                    el.setAttribute('title', el.getAttribute('data-en-title'));
+                }
+            });
+        }
+        
+        // تطبيق الترجمة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            translateAdminPage(document.body);
+        });
+        
+        // مراقبة تغيير اللغة عبر الـ Layout (عند تغيير سمة dir)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateAdminPage(document.body);
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // الاستماع لتغيير اللغة من localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateAdminPage(document.body);
+            }
+        });
+        
+        // ---- البحث الفوري (بدون تعديل) ----
+        const searchInput = document.getElementById('searchInput');
+        const userRows = document.querySelectorAll('.user-row');
+        const userCards = document.querySelectorAll('.user-card');
+        const noResultsDiv = document.getElementById('noResultsMessage');
+
+        function filterUsers() {
+            const term = searchInput.value.trim().toLowerCase();
+            let anyVisible = false;
+
+            userRows.forEach(row => {
+                const username = row.getAttribute('data-username')?.toLowerCase() || '';
+                const phone = row.getAttribute('data-phone')?.toLowerCase() || '';
+                const fullname = row.getAttribute('data-fullname')?.toLowerCase() || '';
+                const email = row.getAttribute('data-email')?.toLowerCase() || '';
+                const matches = term === '' || username.includes(term) || phone.includes(term) || fullname.includes(term) || email.includes(term);
+                if (matches) {
+                    row.style.display = '';
+                    anyVisible = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            userCards.forEach(card => {
+                const username = card.getAttribute('data-username')?.toLowerCase() || '';
+                const phone = card.getAttribute('data-phone')?.toLowerCase() || '';
+                const fullname = card.getAttribute('data-fullname')?.toLowerCase() || '';
+                const email = card.getAttribute('data-email')?.toLowerCase() || '';
+                const matches = term === '' || username.includes(term) || phone.includes(term) || fullname.includes(term) || email.includes(term);
+                if (matches) {
+                    card.style.display = '';
+                    anyVisible = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (anyVisible) {
+                noResultsDiv.classList.add('d-none');
+            } else {
+                noResultsDiv.classList.remove('d-none');
+            }
+        }
+
+        searchInput.addEventListener('input', filterUsers);
+
+        // ---- مودال الحذف ----
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                const userName = this.getAttribute('data-name');
+                document.getElementById('deleteUserName').innerText = userName;
+                document.getElementById('deleteUserId').value = userId;
+                new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            });
+        });
+    </script>
+}
+
+<style>
+    /* شريط البحث */
+    #searchInput:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        border-color: #86b7fe;
+    }
+
+    /* تحسين ظهور الأزرار على الجوال */
+    @@media (max-width: 767.98px) {
+        .btn-sm.rounded-pill {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.75rem;
+        }
+        .card-body {
+            padding: 1rem;
+        }
+        .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        .card-title {
+            word-break: break-word;
+        }
+    }
+
+    /* جعل المودال مناسباً للشاشات الصغيرة جداً */
+    @@media (max-width: 576px) {
+        .modal-dialog {
+            margin: 1rem;
+        }
+        .modal-content {
+            border-radius: 1rem !important;
+        }
+        .modal-footer .btn {
+            padding: 0.5rem 1rem;
+        }
+    }
+    
+    /* دعم الوضع الليلي للنصوص داخل الجدول والبطاقات */
+    body.dark-mode .table-light {
+        background-color: var(--secondary-soft);
+        color: var(--text-dark);
+    }
+    body.dark-mode .table-light th {
+        color: var(--text-dark);
+    }
+    body.dark-mode .card-soft {
+        background-color: var(--card-white);
+    }
+    /* دعم الوضع الليلي للنصوص داخل الجدول والبطاقات */
+body.dark-mode .table-light {
+    background-color: var(--secondary-soft);
+    color: var(--text-dark);
+}
+body.dark-mode .table-light th {
+    color: #ffffff !important;
+    background-color: #2a3042 !important;
+}
+body.dark-mode .card-soft {
+    background-color: var(--card-white);
+}
+</style>

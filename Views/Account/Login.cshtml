@@ -1,0 +1,99 @@
+@model MyWebProject.Controllers.LoginViewModel
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card-soft p-4">
+            <h3 class="h5 mb-3 text-center">
+                <i class="bi bi-door-open"></i>
+                <span data-ar="تسجيل الدخول" data-en="Login">تسجيل الدخول</span>
+            </h3>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <form asp-action="Login" method="post">
+                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">
+                        <span data-ar="اسم المستخدم" data-en="Username">اسم المستخدم</span>
+                    </label>
+                    <input asp-for="Username" class="form-control" autocomplete="off" 
+                           data-ar-placeholder="أدخل اسم المستخدم" 
+                           data-en-placeholder="Enter username" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">
+                        <span data-ar="كلمة المرور" data-en="Password">كلمة المرور</span>
+                    </label>
+                    <input asp-for="Password" type="password" class="form-control"
+                           data-ar-placeholder="أدخل كلمة المرور" 
+                           data-en-placeholder="Enter password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="mb-3 form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label class="form-check-label small">
+                        <span data-ar="تذكرني" data-en="Remember me">تذكرني</span>
+                    </label>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-soft-primary rounded-pill">
+                        <span data-ar="دخول" data-en="Login">دخول</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // ============= دعم الترجمة في صفحة تسجيل الدخول =============
+        
+        // دالة لترجمة العناصر الثابتة والنصوص والـ placeholders
+        function translateLoginPage(container) {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            // ترجمة النصوص الثابتة (العناوين، التسميات، الأزرار)
+            container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+            // ترجمة خاصية placeholder للحقول
+            container.querySelectorAll('[data-ar-placeholder][data-en-placeholder]').forEach(input => {
+                if (currentLang === 'ar') {
+                    input.placeholder = input.getAttribute('data-ar-placeholder');
+                } else {
+                    input.placeholder = input.getAttribute('data-en-placeholder');
+                }
+            });
+        }
+        
+        // تطبيق الترجمة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            translateLoginPage(document.body);
+        });
+        
+        // مراقبة تغيير اللغة عبر الـ Layout (عند تغيير سمة dir على html)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateLoginPage(document.body);
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // الاستماع لتغيير اللغة من localStorage (للتكامل مع النوافذ المتعددة)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateLoginPage(document.body);
+            }
+        });
+    </script>
+}  

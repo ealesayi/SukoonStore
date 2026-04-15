@@ -1,0 +1,93 @@
+@model MyWebProject.Models.Product
+@{
+    ViewData["Title"] = "تعديل المنتج";
+}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card-soft p-4">
+            <h3 class="h5 mb-3">
+                <i class="bi bi-pencil"></i>
+                <span data-ar="تعديل المنتج" data-en="Edit Product">تعديل المنتج</span>
+            </h3>
+            <form asp-action="Edit">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label small fw-semibold">
+                        <span data-ar="@Html.DisplayNameFor(m => m.Name)" data-en="Name">@Html.DisplayNameFor(m => m.Name)</span>
+                    </label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+                
+                <div class="mb-3">
+                    <label asp-for="Price" class="form-label small fw-semibold">
+                        <span data-ar="@Html.DisplayNameFor(m => m.Price)" data-en="Price">@Html.DisplayNameFor(m => m.Price)</span>
+                    </label>
+                    <input asp-for="Price" class="form-control" />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+                
+                <div class="mb-4">
+                    <label asp-for="Description" class="form-label small fw-semibold">
+                        <span data-ar="@Html.DisplayNameFor(m => m.Description)" data-en="Description">@Html.DisplayNameFor(m => m.Description)</span>
+                    </label>
+                    <textarea asp-for="Description" rows="3" class="form-control"></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary rounded-pill px-4">
+                        <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                    </a>
+                    <button type="submit" class="btn btn-soft-primary rounded-pill px-4">
+                        <span data-ar="تحديث" data-en="Update">تحديث</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // ============= دعم الترجمة في هذه الصفحة =============
+        
+        // دالة لترجمة العناصر داخل حاوية معينة (تستخدم بعد تحميل الصفحة)
+        function translateContainer(container) {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+        }
+        
+        // ترجمة الصفحة عند التحميل
+        document.addEventListener('DOMContentLoaded', function() {
+            translateContainer(document.body);
+        });
+        
+        // الاستماع لتغيير اللغة من الـ Layout
+        // الطريقة: مراقبة التغيير في سمة 'dir' على عنصر html (لأن Layout يغيرها عند تبديل اللغة)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateContainer(document.body);
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+        
+        // بديل: الاستماع لحدث storage إذا تم تغيير اللغة من نافذة أخرى (نادر)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateContainer(document.body);
+            }
+        });
+    </script>
+}

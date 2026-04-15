@@ -1,0 +1,452 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using MyWebProject.Models
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - متجر سكون</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --bg-soft: #f4f6f9;
+            --card-white: #ffffff;
+            --primary-soft: #5c9e8e;
+            --primary-hover: #4a7c6f;
+            --secondary-soft: #e9ecef;
+            --text-dark: #2c3e42;
+            --text-muted: #6c7a7d;
+            --danger-soft: #e07a5f;
+            --warning-soft: #e9b35f;
+            --border-light: rgba(0,0,0,0.05);
+            --navbar-bg: #ffffff;
+            --footer-bg: #ffffff;
+        }
+        body.dark-mode {
+            --bg-soft: #1a1f2e;
+            --card-white: #252b3d;
+            --primary-soft: #6abfad;
+            --primary-hover: #7eccbc;
+            --secondary-soft: #2a3042;
+            --text-dark: #e8edf2;
+            --text-muted: #9aa4bf;
+            --danger-soft: #e07a5f;
+            --warning-soft: #e9b35f;
+            --border-light: rgba(255,255,255,0.08);
+            --navbar-bg: #252b3d;
+            --footer-bg: #252b3d;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-soft);
+            color: var(--text-dark);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .navbar {
+            background: var(--navbar-bg) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-soft) !important;
+        }
+        .nav-link {
+            color: var(--text-dark) !important;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .nav-link:hover {
+            color: var(--primary-soft) !important;
+        }
+        .btn-soft-primary {
+            background-color: var(--primary-soft);
+            border: none;
+            color: white;
+            transition: 0.2s;
+        }
+        .btn-soft-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        .btn-soft-warning {
+            background-color: var(--warning-soft);
+            border: none;
+            color: #2c3e42;
+        }
+        .btn-soft-warning:hover {
+            background-color: #dca54a;
+            color: white;
+        }
+        .btn-soft-danger {
+            background-color: var(--danger-soft);
+            border: none;
+        }
+        .btn-soft-danger:hover {
+            background-color: #c76a4f;
+        }
+        .card-soft {
+            background: var(--card-white);
+            border: none;
+            border-radius: 20px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .card-soft:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.05);
+        }
+        footer {
+            background: var(--footer-bg);
+            border-top: 1px solid var(--border-light);
+            color: var(--text-muted);
+        }
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            background-color: #fefefe;
+        }
+        .form-control:focus {
+            border-color: var(--primary-soft);
+            box-shadow: 0 0 0 3px rgba(92,158,142,0.2);
+        }
+        .badge-soft {
+            background-color: #eaf4f0;
+            color: var(--primary-soft);
+            border-radius: 30px;
+            padding: 0.4rem 0.8rem;
+            font-weight: 500;
+        }
+        h1, h2, h3, h4, .h1, .h2, .h3, .h4 {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .theme-toggle, .lang-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--text-dark);
+        }
+        .theme-toggle:hover, .lang-toggle:hover {
+            background-color: var(--secondary-soft);
+        }
+        body.english-mode {
+            direction: ltr;
+            text-align: left;
+        }
+        body.english-mode .navbar-nav {
+            margin-right: auto;
+            margin-left: 0 !important;
+        }
+        body.english-mode .ms-auto {
+            margin-right: auto !important;
+            margin-left: 0 !important;
+        }
+        #cart-badge {
+            background-color: #e07a5f;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-flower1"></i> 
+                <span data-ar="منتجات | سكون" data-en="Sukoon | Products"> منتجات| سكون</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        @if (User.IsInRole("Customer"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="CustomerProducts" asp-action="Index">
+                                    <i class="bi bi-shop"></i> 
+                                    <span data-ar="المتجر" data-en="Shop">المتجر</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Cart" asp-action="Index" id="cart-link">
+                                    <i class="bi bi-cart"></i> 
+                                    <span data-ar="السلة" data-en="Cart">السلة</span>
+                                    <span id="cart-badge" class="badge bg-danger rounded-pill ms-1" style="display:none;">0</span>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Products" asp-action="Index">
+                                    <i class="bi bi-grid-3x3-gap"></i> 
+                                    <span data-ar="المنتجات" data-en="Products">المنتجات</span>
+                                </a>
+                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="Users">
+                                        <i class="bi bi-shield-lock"></i> 
+                                        <span data-ar="المستخدمين" data-en="Users">المستخدمين</span>
+                                    </a>
+                                </li>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                <i class="bi bi-box-arrow-in-right"></i> 
+                                <span data-ar="دخول" data-en="Login">دخول</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+                <div class="d-flex align-items-center">
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <i class="bi bi-moon-fill" id="themeIcon"></i>
+                    </button>
+                    <button class="lang-toggle" id="langToggle">
+                        <span id="langText">English</span>
+                    </button>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <!-- زر تسجيل الخروج الصغير -->
+<div class="ms-2">
+    <a href="#" id="logoutButton" class="text-danger" style="text-decoration: none; font-size: 1.0rem;">
+        <i class="bi bi-box-arrow-right"></i>
+        <span data-ar="تسجيل خروج" data-en="Logout">تسجيل خروج</span>
+    </a>
+</div>
+
+<!-- نموذج الخروج المخفي -->
+<form id="logoutForm" asp-controller="Account" asp-action="Logout" method="post" style="display:none;"></form>
+
+<script>
+    function getCurrentLanguage() {
+        let lang = localStorage.getItem('language');
+        if (lang) return lang;
+        if (document.documentElement.getAttribute('dir') === 'ltr') return 'en';
+        return 'ar';
+    }
+
+    function updateLogoutText() {
+        const lang = getCurrentLanguage();
+        const span = document.querySelector('#logoutButton span');
+        if (span) {
+            if (lang === 'ar') {
+                span.textContent = span.getAttribute('data-ar');
+            } else {
+                span.textContent = span.getAttribute('data-en');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLogoutText();
+        const observer = new MutationObserver(() => updateLogoutText());
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['dir'] });
+        window.addEventListener('storage', (e) => { if (e.key === 'language') updateLogoutText(); });
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const lang = getCurrentLanguage();
+        let title, text, confirmText, cancelText;
+        if (lang === 'ar') {
+            title = 'تسجيل الخروج';
+            text = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+            confirmText = 'تسجيل خروج';
+            cancelText = 'إلغاء';
+        } else {
+            title = 'Logout';
+            text = 'Are you sure you want to logout?';
+            confirmText = 'Logout';
+            cancelText = 'Cancel';
+        }
+        
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: 'question',
+            width: '220px',               // صندوق صغير
+            padding: '13rem',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--danger-soft, #e07a5f)',
+            cancelButtonColor: 'var(--secondary-soft, #6c757d)',
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            background: 'var(--card-white, #ffffff)',
+            color: 'var(--text-dark, #2c3e42)',
+            backdrop: 'rgba(0,0,0,0.3)',
+            customClass: {
+                popup: 'swal2-popup-custom'  // يمكن إضافة class مخصص إن أردت
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('logoutForm').submit();
+            }
+        });
+    });
+</script>
+
+<style>
+    /* تنسيق إضافي لجعل النافذة أكثر تناغماً مع التطبيق */
+    .swal2-popup-custom {
+        border-radius: 20px !important;
+        font-family: 'Tajawal', sans-serif !important;
+    }
+    .swal2-confirm {
+        border-radius: 40px !important;
+        padding: 0.3rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+    .swal2-cancel {
+        border-radius: 40px !important;
+        padding: 0.3rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+    .swal2-title {
+        font-size: 1.3rem !important;
+        font-weight: 600 !important;
+    }
+    .swal2-html-container {
+        font-size: 0.9rem !important;
+    }
+</style>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        @RenderBody()
+    </main>
+
+    <footer class="text-center py-3 mt-5">
+        <div class="container">
+            <small>
+                <span data-ar="جميع الحقوق محفوظة © 2026 أسهل لحلول الحاسب الآلي المتكاملة" 
+                       data-en="All rights reserved © 2026 Ashal for Integrated Computer Solutions">
+                    جميع الحقوق محفوظة © 2026 أسهل لحلول الحاسب الآلي المتكاملة
+                </span>
+            </small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // الثيم
+        const savedTheme = localStorage.getItem('theme');
+        const themeIcon = document.getElementById('themeIcon');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeIcon.classList.remove('bi-moon-fill');
+            themeIcon.classList.add('bi-sun-fill');
+        }
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeIcon.classList.remove('bi-moon-fill');
+                themeIcon.classList.add('bi-sun-fill');
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIcon.classList.remove('bi-sun-fill');
+                themeIcon.classList.add('bi-moon-fill');
+            }
+        });
+
+        // الترجمة
+        let currentLang = localStorage.getItem('language') || 'ar';
+        const langToggle = document.getElementById('langToggle');
+        const langText = document.getElementById('langText');
+        function updateLanguage(lang) {
+            document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                el.textContent = lang === 'ar' ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+            });
+            if (lang === 'en') {
+                document.body.classList.add('english-mode');
+                document.documentElement.setAttribute('dir', 'ltr');
+                document.documentElement.setAttribute('lang', 'en');
+                langText.textContent = 'العربية';
+            } else {
+                document.body.classList.remove('english-mode');
+                document.documentElement.setAttribute('dir', 'rtl');
+                document.documentElement.setAttribute('lang', 'ar');
+                langText.textContent = 'English';
+            }
+            localStorage.setItem('language', lang);
+        }
+        updateLanguage(currentLang);
+        langToggle.addEventListener('click', () => {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            updateLanguage(currentLang);
+        });
+
+        // عداد السلة
+        async function updateCartBadge() {
+            try {
+                const response = await fetch('@Url.Action("GetCartCount", "Cart")');
+                const data = await response.json();
+                const badge = document.getElementById('cart-badge');
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error updating cart badge:', error);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateCartBadge);
+
+        // تسجيل الخروج مع رسالة تأكيد
+        const logoutBtn = document.getElementById('logoutButton');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lang = localStorage.getItem('language') || 'ar';
+                const title = lang === 'ar' ? 'تسجيل الخروج' : 'Logout';
+                const text = lang === 'ar' ? 'هل أنت متأكد من رغبتك في تسجيل الخروج؟' : 'Are you sure you want to logout?';
+                const confirmText = lang === 'ar' ? 'نعم، تسجيل خروج' : 'Yes, logout';
+                const cancelText = lang === 'ar' ? 'إلغاء' : 'Cancel';
+                
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: cancelText
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('logoutForm').submit();
+                    }
+                });
+            });
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

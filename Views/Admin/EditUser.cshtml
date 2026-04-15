@@ -1,0 +1,212 @@
+@model MyWebProject.Controllers.EditUserViewModel
+@{
+    ViewData["Title"] = "تعديل مستخدم";
+}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card-soft p-4">
+            <h3 class="h5 mb-3">
+                <i class="bi bi-pencil-square"></i>
+                <span data-ar="تعديل المستخدم" data-en="Edit User">تعديل المستخدم</span>
+            </h3>
+            <form asp-action="EditUser" method="post" id="editUserForm">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="UserName" class="form-label small fw-semibold">
+                        <span data-ar="اسم المستخدم" data-en="Username">اسم المستخدم</span>
+                    </label>
+                    <input asp-for="UserName" class="form-control" 
+                           data-ar-placeholder="أدخل اسم المستخدم" 
+                           data-en-placeholder="Enter username" />
+                    <span asp-validation-for="UserName" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label small fw-semibold">
+                        <span data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</span>
+                    </label>
+                    <input asp-for="Email" class="form-control" 
+                           data-ar-placeholder="example@domain.com" 
+                           data-en-placeholder="example@domain.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label small fw-semibold">
+                        <span data-ar="الاسم الكامل" data-en="Full Name">الاسم الكامل</span>
+                    </label>
+                    <input asp-for="FullName" class="form-control" 
+                           data-ar-placeholder="الاسم الثلاثي" 
+                           data-en-placeholder="Full name" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label small fw-semibold">
+                        <span data-ar="رقم الهاتف" data-en="Phone Number">رقم الهاتف</span>
+                    </label>
+                    <input asp-for="PhoneNumber" class="form-control" 
+                           data-ar-placeholder="05xxxxxxxx" 
+                           data-en-placeholder="Phone number" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <!-- حقول الشركة الجديدة -->
+                <div class="mb-3">
+                    <label asp-for="CompanyName" class="form-label small fw-semibold">
+                        <span data-ar="اسم الشركة" data-en="Company Name">اسم الشركة</span>
+                    </label>
+                    <input asp-for="CompanyName" class="form-control" 
+                           data-ar-placeholder="أدخل اسم الشركة" 
+                           data-en-placeholder="Enter company name" />
+                    <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">
+                        <span data-ar="شعار الشركة" data-en="Company Logo">شعار الشركة</span>
+                    </label>
+                    <input type="file" id="logoFile" class="form-control" accept="image/*" />
+                    <input type="hidden" asp-for="CompanyLogoUrl" id="CompanyLogoUrl" />
+                    <div id="logoPreview" class="mt-2" style="display:none;">
+                        <img id="previewImg" src="" alt="Logo Preview" style="max-width: 100px; max-height: 100px;" />
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.CompanyLogoUrl))
+                    {
+                        <div id="existingLogo" class="mt-2">
+                            <img src="@Model.CompanyLogoUrl" alt="Current Logo" style="max-width: 100px; max-height: 100px;" />
+                            <small class="text-muted d-block"><span data-ar="الشعار الحالي" data-en="Current logo">الشعار الحالي</span></small>
+                        </div>
+                    }
+                    <span id="uploadStatus" class="text-muted small"></span>
+                    <span asp-validation-for="CompanyLogoUrl" class="text-danger small"></span>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Users" class="btn btn-secondary rounded-pill px-4">
+                        <span data-ar="إلغاء" data-en="Cancel">إلغاء</span>
+                    </a>
+                    <button type="submit" class="btn btn-soft-primary rounded-pill px-4">
+                        <span data-ar="حفظ التغييرات" data-en="Save Changes">حفظ التغييرات</span>
+                    </button>
+                </div>
+            </form>
+            
+            <hr class="my-4" />
+            <h4 class="h6">
+                <span data-ar="إعادة تعيين كلمة المرور" data-en="Reset Password">إعادة تعيين كلمة المرور</span>
+            </h4>
+            <form asp-action="ResetPassword" method="post" id="resetPasswordForm">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">
+                        <span data-ar="كلمة المرور الجديدة" data-en="New Password">كلمة المرور الجديدة</span>
+                    </label>
+                    <input type="password" name="newPassword" class="form-control" required minlength="6"
+                           data-ar-placeholder="أدخل كلمة مرور جديدة (6 أحرف على الأقل)" 
+                           data-en-placeholder="Enter new password (min 6 characters)" />
+                </div>
+                <button type="submit" class="btn btn-warning rounded-pill">
+                    <span data-ar="إعادة تعيين" data-en="Reset">إعادة تعيين</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        const IMGBB_API_KEY = "cddaac16d521cccb99a5941d8155c706";
+
+        // رفع الشعار عند اختيار ملف جديد
+        document.getElementById('logoFile').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const statusSpan = document.getElementById('uploadStatus');
+            statusSpan.textContent = 'جاري رفع الشعار...';
+            statusSpan.style.color = 'blue';
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const imageUrl = data.data.url;
+                    document.getElementById('CompanyLogoUrl').value = imageUrl;
+                    const previewDiv = document.getElementById('logoPreview');
+                    const previewImg = document.getElementById('previewImg');
+                    previewImg.src = imageUrl;
+                    previewDiv.style.display = 'block';
+                    // إخفاء الشعار القديم إذا كان موجوداً
+                    const existingDiv = document.getElementById('existingLogo');
+                    if (existingDiv) existingDiv.style.display = 'none';
+                    statusSpan.textContent = 'تم رفع الشعار بنجاح!';
+                    statusSpan.style.color = 'green';
+                } else {
+                    throw new Error(data.error.message);
+                }
+            } catch (error) {
+                statusSpan.textContent = 'فشل رفع الشعار: ' + error.message;
+                statusSpan.style.color = 'red';
+            }
+        });
+
+        // ============= دعم الترجمة في صفحة تعديل المستخدم =============
+        function translateEditUserPage(container) {
+            const currentLang = localStorage.getItem('language') || 'ar';
+            container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                if (currentLang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+            container.querySelectorAll('[data-ar-placeholder][data-en-placeholder]').forEach(input => {
+                if (currentLang === 'ar') {
+                    input.placeholder = input.getAttribute('data-ar-placeholder');
+                } else {
+                    input.placeholder = input.getAttribute('data-en-placeholder');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            translateEditUserPage(document.body);
+        });
+
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'dir') {
+                    translateEditUserPage(document.body);
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'language') {
+                translateEditUserPage(document.body);
+            }
+        });
+
+        // تأكيد إعادة تعيين كلمة المرور بلغة المستخدم
+        const resetForm = document.getElementById('resetPasswordForm');
+        if (resetForm) {
+            resetForm.addEventListener('submit', function(e) {
+                const currentLang = localStorage.getItem('language') || 'ar';
+                let confirmMessage = currentLang === 'ar' 
+                    ? 'هل أنت متأكد من إعادة تعيين كلمة المرور لهذا المستخدم؟' 
+                    : 'Are you sure you want to reset the password for this user?';
+                if (!confirm(confirmMessage)) {
+                    e.preventDefault();
+                }
+            });
+        }
+    </script>
+}

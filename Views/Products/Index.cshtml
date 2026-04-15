@@ -1,0 +1,182 @@
+@model IEnumerable<MyWebProject.Models.Product>
+@{
+    ViewData["Title"] = "المنتجات";
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.CompanyName) || !string.IsNullOrEmpty(ViewBag.CompanyLogoUrl))
+{
+    <div class="company-profile mb-5 text-center position-relative">
+        <div class="card-soft p-4 shadow-sm mx-auto" style="max-width: 12250px; background: var(--card-white); border: 1px solid var(--border-light); border-radius: 30px;">
+            <div class="position-relative d-inline-block">
+                @if (!string.IsNullOrEmpty(ViewBag.CompanyLogoUrl))
+                {
+                    <img id="companyLogo" src="@ViewBag.CompanyLogoUrl" alt="Company Logo" style="max-height: 100px; width: auto;" class="rounded-circle p-2" style="background: var(--bg-soft);" />
+                }
+                else
+                {
+                    <div id="companyLogoPlaceholder" class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; margin: 0 auto;">
+                        <i class="bi bi-building fs-1 text-white"></i>
+                    </div>
+                }
+                <button type="button" class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0" id="editLogoBtn" style="transform: translate(25%, 25%);">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            </div>
+            <h3 class="fw-bold mb-1 mt-3" style="color: var(--primary-soft);">@(!string.IsNullOrEmpty(ViewBag.CompanyName) ? ViewBag.CompanyName : "شركتي")</h3>
+        </div>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="h4 mb-0">
+        <i class="bi bi-flower2"></i>
+        <span data-ar="منتجاتي" data-en="My Products">منتجاتي</span>
+    </h2>
+    <a asp-action="Create" class="btn btn-soft-primary rounded-pill px-4">
+        <i class="bi bi-plus-lg"></i>
+        <span data-ar="جديد" data-en="New">جديد</span>
+    </a>
+</div>
+
+<div class="mb-4">
+    <div class="input-group shadow-sm rounded-pill overflow-hidden" style="max-width: 350px;">
+        <input type="text" id="searchInput" class="form-control border-0 bg-white" 
+               data-ar-placeholder="ابحث باسم المنتج..." 
+               data-en-placeholder="Search by product name..."
+               placeholder="ابحث باسم المنتج..." autocomplete="off" />
+        <span class="input-group-text bg-white border-0 text-muted">
+            <i class="bi bi-search"></i>
+        </span>
+    </div>
+</div>
+
+<div id="productsContainer">
+    @await Html.PartialAsync("_ProductCards", Model)
+</div>
+
+@section Scripts {
+    <script>
+        const IMGBB_API_KEY = "cddaac16d521cccb99a5941d8155c706";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const editLogoBtn = document.getElementById('editLogoBtn');
+            if (editLogoBtn) {
+                editLogoBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'تغيير شعار الشركة',
+                        html: `
+                            <input type="file" id="logoFileInput" class="form-control" accept="image/*" />
+                            <div id="uploadPreview" class="mt-3 text-center" style="display:none;">
+                                <img id="previewImg" src="" style="max-height: 150px;" class="rounded border p-2" />
+                            </div>
+                            <div id="uploadStatus" class="mt-2 small text-muted"></div>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'رفع وحفظ',
+                        cancelButtonText: 'إلغاء',
+                        preConfirm: async () => {
+                            const fileInput = document.getElementById('logoFileInput');
+                            const file = fileInput.files[0];
+                            if (!file) {
+                                Swal.showValidationMessage('الرجاء اختيار صورة');
+                                return false;
+                            }
+                            const statusDiv = document.getElementById('uploadStatus');
+                            statusDiv.textContent = 'جاري الرفع...';
+                            statusDiv.style.color = 'blue';
+                            const formData = new FormData();
+                            formData.append('image', file);
+                            try {
+                                const uploadRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                                const uploadData = await uploadRes.json();
+                                if (!uploadData.success) throw new Error(uploadData.error.message);
+                                const imageUrl = uploadData.data.url;
+                                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                                const saveRes = await fetch('@Url.Action("UpdateLogo", "Products")', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                        'RequestVerificationToken': token
+                                    },
+                                    body: `logoUrl=${encodeURIComponent(imageUrl)}`
+                                });
+                                const saveData = await saveRes.json();
+                                if (!saveData.success) throw new Error(saveData.message || 'فشل الحفظ');
+                                const logoImg = document.getElementById('companyLogo');
+                                if (logoImg) {
+                                    logoImg.src = saveData.newLogoUrl;
+                                } else {
+                                    const container = document.querySelector('.company-profile .position-relative.d-inline-block');
+                                    if (container) {
+                                        const btnHtml = container.querySelector('button').outerHTML;
+                                        container.innerHTML = `<img id="companyLogo" src="${saveData.newLogoUrl}" alt="Company Logo" style="max-height: 100px; width: auto;" class="rounded-circle p-2" style="background: var(--bg-soft);" />` + btnHtml;
+                                    }
+                                }
+                                return true;
+                            } catch (error) {
+                                Swal.showValidationMessage(`خطأ: ${error.message}`);
+                                return false;
+                            }
+                        }
+                    });
+                    document.addEventListener('change', function(e) {
+                        if (e.target && e.target.id === 'logoFileInput') {
+                            const file = e.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = function(event) {
+                                    const previewDiv = document.getElementById('uploadPreview');
+                                    const previewImg = document.getElementById('previewImg');
+                                    previewImg.src = event.target.result;
+                                    previewDiv.style.display = 'block';
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // الترجمة والبحث المباشر
+            function translateContainer(container) {
+                const currentLang = localStorage.getItem('language') || 'ar';
+                container.querySelectorAll('[data-ar][data-en]').forEach(el => {
+                    el.textContent = currentLang === 'ar' ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+                });
+                const searchInputInside = container.querySelector('#searchInput');
+                if (searchInputInside) {
+                    const arPlaceholder = searchInputInside.getAttribute('data-ar-placeholder');
+                    const enPlaceholder = searchInputInside.getAttribute('data-en-placeholder');
+                    if (currentLang === 'ar' && arPlaceholder) searchInputInside.placeholder = arPlaceholder;
+                    else if (enPlaceholder) searchInputInside.placeholder = enPlaceholder;
+                }
+            }
+            translateContainer(document.body);
+            window.addEventListener('storage', e => {
+                if (e.key === 'language') translateContainer(document.body);
+            });
+            const observer = new MutationObserver(() => translateContainer(document.body));
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['dir'] });
+
+            const searchInput = document.getElementById('searchInput');
+            const productsContainer = document.getElementById('productsContainer');
+            let debounceTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value;
+                debounceTimer = setTimeout(() => {
+                    fetch(`@Url.Action("SearchProducts", "Products")?searchString=${encodeURIComponent(query)}`)
+                        .then(response => response.text())
+                        .then(html => {
+                            productsContainer.innerHTML = html;
+                            translateContainer(productsContainer);
+                        })
+                        .catch(error => console.error('Error:', error));
+                }, 300);
+            });
+        });
+    </script>
+}
